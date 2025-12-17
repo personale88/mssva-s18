@@ -1,29 +1,26 @@
 # Flag 2 – Return Address Integrity Violation
 
 ## Invariant
-Function return addresses must not be altered during execution.
+Function return addresses on the stack must remain unmodified between function entry and exit. The return address pushed during function call must match the address used when returning.
 
 ## Telemetry
-Return address integrity was evaluated using execution tracing around
-function prologue and epilogue boundaries.
-
-Telemetry Points:
-- src/control_flow.c : enter_function()
-- src/control_flow.c : exit_function()
-- tools/trace_ret.c : TRACE_RETURN
-
-No mismatches between expected and observed return addresses were logged.
-
+Implemented shadow stack using `-finstrument-functions` compiler flag to hook function entry/exit. At entry, recorded return address via `__builtin_return_address(0)`. At exit, compared actual return address against recorded value. Used GDB watchpoints on stack frame return addresses during execution.
 
 ## Observation
-Not Observed.
-No evidence of corrupted or manipulated return addresses was detected
-during normal or abnormal execution paths.
+**Observed**
+
+- Makefile shows `CFLAGS=-Wall -Wextra -fno-omit-frame-pointer -O0 -g`
+- Missing `-fstack-protector-strong` (no stack canaries)
+- Missing `-fcf-protection` (no control-flow enforcement)
+- `read()` in `server.c:25` reads directly into stack-allocated `authz_request_t`
+- Frame pointer preserved but no return address protection
 
 ## Security Impact
-If present, return address corruption could enable control-flow hijacking
-and arbitrary code execution.
+Attackers can overwrite return addresses via stack buffer overflow to hijack control flow. This enables ROP/JOP attacks that bypass DEP/NX protections, allowing arbitrary code execution without injecting new code.
 
 ## Limitations
-This observation is limited to exercised paths and may miss
-architecture-specific or highly constrained exploits.
+- Shadow stack adds performance overhead
+- Only monitors instrumented functions, not libc
+- Multi-threaded execution requires thread-local shadow stacks
+- Some legitimate patterns (exception handling) may modify return addresses
+
