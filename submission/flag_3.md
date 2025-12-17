@@ -1,30 +1,25 @@
 # Flag 3 – Runtime Function Resolution Tampering
 
 ## Invariant
-Runtime function resolution should not be modified after program initialization.
+Global Offset Table (GOT) entries must point to their intended library functions after dynamic linking. GOT entries for `read()`, `write()`, `socket()`, `printf()` should remain constant throughout execution.
 
 ## Telemetry
-Instrumentation was added at the policy dispatch boundary to observe
-authorization state before handler execution.
-
-Telemetry Points:
-- src/policy_dispatch.c : dispatch_policy()
-- src/authz_context.c : authz_context_init()
-- tools/trace_exec.c : TRACE_POLICY_ENTRY
-
-These points record handler entry with the current authorization state.
-
-
+Recorded baseline GOT entry values after program startup using `dlsym()`. Implemented periodic GOT validation comparing current entries against baseline. Used `readelf -r authz_bridge` to identify relocations and GDB watchpoints on GOT addresses to detect unauthorized modifications.
 
 ## Observation
-Observed.
-Function resolution behavior differed from expected static mappings,
-indicating possible runtime manipulation.
+**Observed**
+
+- Makefile shows `LDFLAGS=` (empty)
+- Missing `-z relro -z now` linker flags
+- GOT remains writable after startup (no RELRO protection)
+- Security-critical functions use lazy binding: `read()`, `write()`, `printf()`, `socket()`, `bind()`, `listen()`, `accept()`
+- Attacker can overwrite GOT entries to redirect function calls
 
 ## Security Impact
-Tampering with runtime resolution can redirect execution to unintended
-or malicious code paths.
+Overwriting GOT[write] allows attacker to change authorization responses (DENY→ALLOW). Overwriting GOT[read] enables input manipulation. All calls to hijacked functions are transparently redirected, and the service appears functional while executing malicious logic.
 
 ## Limitations
-This analysis cannot distinguish between intentional dynamic behavior
-and malicious manipulation without deeper semantic context.
+- Full RELRO would make GOT read-only after startup
+- ASLR requires address disclosure before exploitation
+- Initial lazy binding updates may trigger false positives
+- Continuous validation adds performance overhead
