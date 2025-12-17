@@ -4,7 +4,6 @@
 Runtime function resolution should not be modified after program initialization.
 
 ## Telemetry
-## Telemetry
 Instrumentation was added at the policy dispatch boundary to observe
 authorization state before handler execution.
 
@@ -14,6 +13,7 @@ Telemetry Points:
 - tools/trace_exec.c : TRACE_POLICY_ENTRY
 
 These points record handler entry with the current authorization state.
+
 
 
 ## Observation
