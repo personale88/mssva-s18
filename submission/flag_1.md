@@ -4,7 +4,16 @@
 Authorization must be validated before policy handlers execute.
 
 ## Telemetry
-Policy dispatch and handler entry points were instrumented.
+Instrumentation was added at the policy dispatch boundary to observe
+authorization state before handler execution.
+
+Telemetry Points:
+- src/policy_dispatch.c : dispatch_policy()
+- src/authz_context.c : authz_context_init()
+- tools/trace_exec.c : TRACE_POLICY_ENTRY
+
+These points record handler entry with the current authorization state.
+
 
 ## Observation
 Observed.
