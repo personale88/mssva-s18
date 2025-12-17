@@ -4,8 +4,16 @@
 Control flow should follow valid, intended execution paths.
 
 ## Telemetry
-Execution flow was traced to detect unexpected jumps, skips,
-or indirect transfers outside normal logic.
+Control-flow tracing was enabled to detect unexpected non-linear
+execution transfers.
+
+Telemetry Points:
+- src/control_flow.c : indirect_jump()
+- src/control_flow.c : computed_goto()
+- tools/trace_cfg.c : TRACE_JUMP
+
+No invalid or unintended control-flow transfers were observed.
+
 
 ## Observation
 Not Observed.
