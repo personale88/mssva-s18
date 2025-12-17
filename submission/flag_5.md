@@ -4,8 +4,16 @@
 All executable paths should be observable through logging or telemetry.
 
 ## Telemetry
-Execution tracing was enabled to identify code paths
-executing without corresponding visibility.
+Execution tracing was used to identify code paths that execute
+without producing observable logs.
+
+Telemetry Points:
+- src/main.c : process_request()
+- src/error_paths.c : handle_error()
+- tools/trace_exec.c : TRACE_EXEC_PATH
+
+Certain execution paths completed without emitting telemetry events.
+
 
 ## Observation
 Observed.
