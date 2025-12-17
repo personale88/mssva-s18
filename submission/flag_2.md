@@ -4,8 +4,16 @@
 Function return addresses must not be altered during execution.
 
 ## Telemetry
-Runtime execution was observed around function call and return boundaries
-to detect unexpected control-flow changes.
+Return address integrity was evaluated using execution tracing around
+function prologue and epilogue boundaries.
+
+Telemetry Points:
+- src/control_flow.c : enter_function()
+- src/control_flow.c : exit_function()
+- tools/trace_ret.c : TRACE_RETURN
+
+No mismatches between expected and observed return addresses were logged.
+
 
 ## Observation
 Not Observed.
